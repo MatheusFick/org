@@ -28,6 +28,7 @@ architecture rtl of MIPs is
   signal data_in_lg     : std_logic_vector(15 downto 0);
   signal data_out_lg    : std_logic_vector(15 downto 0);
   signal addr_lg        : std_logic_vector(7 downto 0);
+  signal data_out_instr : std_logic_vector(15 downto 0); -- Saída da memória de instruções
 begin
 
   control_unit: entity work.control_unit
@@ -54,6 +55,7 @@ begin
       clk       => clk,
       data_in   => data_in_lg,
       data_out  => data_out_lg,
+      data_out_instr => data_out_instr,
       addr      => addr_lg,
       branch    => branch_lg,
       addr_sel  => addr_sel_lg,
@@ -67,7 +69,18 @@ begin
       opcode    => opcode_lg
     );
 
-  mem: entity work.mem
+  instr_mem: entity work.mem
+    port map (
+      clk     => clk,
+      rst_n   => rst_n,
+      out_mem => data_out_instr,  -- Sinal para saída da memória de instruções
+      in_mem  => data_in_lg,
+      read    => '1',             -- Sempre habilitada para leitura
+      write   => mem_write_lg,             -- Nunca habilitada para escrita
+      end_mem => addr_lg -- PC fornece o endereço para a memória de instruções
+    );
+
+  data_mem: entity work.mem
     port map (
       clk     => clk,
       rst_n   => rst_n,
